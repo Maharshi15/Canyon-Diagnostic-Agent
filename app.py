@@ -1,4 +1,4 @@
-"""Canyon Diagnostic Agent: web app (version 0.1, Master Data module).
+"""Canyon Diagnostic Agent: web app (version 0.3: Master Data and Application modules).
 
 Run locally:  streamlit run app.py
 """
@@ -12,7 +12,9 @@ import streamlit as st
 from diag_engine import read_table, scan, to_excel
 
 APP_DIR = Path(__file__).parent
-SAMPLE = APP_DIR / "sample_material_master.csv"
+SAMPLE = APP_DIR / "samples" / "sample_material_master.csv"
+if not SAMPLE.exists():
+    SAMPLE = APP_DIR / "sample_material_master.csv"
 
 st.set_page_config(page_title="Canyon Diagnostic Agent", page_icon="🩺", layout="wide")
 
@@ -50,15 +52,19 @@ with st.sidebar:
     st.markdown("### CANYON DIAGNOSTIC AGENT")
     st.caption("Discover · Diagnose · Recommend · Transform")
     client = st.text_input("Client name", placeholder="For example: ABC Manufacturing")
-    module = st.radio("Module", ["Master Data Diagnostic", "Application Diagnostic (coming next)",
+    module = st.radio("Module", ["Master Data Diagnostic", "Application Diagnostic",
                                  "Process Diagnostic (planned)"], index=0)
     st.divider()
-    st.caption("Version 0.1 · Canyon Data Labs, Ahmedabad")
+    st.caption("Version 0.3 · Canyon Data Labs, Ahmedabad")
 
 st.title("Before you transform your business systems, diagnose them.")
 
+if module == "Application Diagnostic":
+    import module_application
+    module_application.render(client, secret)
+    st.stop()
 if module != "Master Data Diagnostic":
-    st.info("This module is on the roadmap. Version 0.1 runs the Master Data Diagnostic.")
+    st.info("This module is on the roadmap.")
     st.stop()
 
 st.subheader("Master Data Diagnostic")

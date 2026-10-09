@@ -1,4 +1,4 @@
-# Canyon Diagnostic Agent: Setup Guide (Version 0.1)
+# Canyon Diagnostic Agent: Setup Guide (Version 0.3)
 
 This guide puts the app online in about 20 minutes. No coding needed. You only click, drag files and paste text.
 
@@ -8,7 +8,9 @@ This guide puts the app online in about 20 minutes. No coding needed. You only c
 * `diag_engine.py`: the master data checks and scoring
 * `ai_summary.py`: writes the executive summary with Azure OpenAI or Claude
 * `requirements.txt`: the list of tools the host installs automatically
-* `sample_material_master.csv`: illustrative sample data, not client data
+* `app_engine.py`: the Application Diagnostic review and analytics checks
+* `module_application.py`: the Application Diagnostic screen
+* `samples/`: illustrative sample data and screenshots of a fictional app, not client data
 * `.streamlit/config.toml`: Canyon colors (optional, a hidden folder)
 
 ## Step 1: Create a GitHub account (5 minutes)
@@ -92,3 +94,13 @@ Only the totals and a few example records are sent to the AI, never the whole fi
 Never share the key in email, chat or screenshots.
 
 (The app can also use Anthropic Claude instead: add ANTHROPIC_API_KEY and CLAUDE_MODEL. If both are set, Azure OpenAI is used.)
+
+## Application Diagnostic (version 0.3)
+
+1. In the left panel, choose **Application Diagnostic**.
+2. Click **Use illustrative sample** to see a full example without using the AI.
+3. For a real review: fill in the application name and journey, then upload screenshots of one journey in order. Name the files 01, 02, 03 so the order is kept.
+4. Optional: upload a funnel export (columns: step, users; first row is users who started, then one row per screen with users who completed it) and a page usage export (columns: page, views). These turn findings into measured evidence.
+5. Click **Run application diagnostic**. It takes up to a minute. Then download the Excel report.
+
+Your Azure deployment must accept images (for example a GPT 4o, GPT 4.1 or GPT 5 deployment). Hide personal data in screenshots before uploading.

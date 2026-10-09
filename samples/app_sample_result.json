@@ -1,0 +1,51 @@
+{
+ "app_summary": "Illustrative review of a fictional field sales app. The journey shows a field officer registering a new retailer in five steps: basic details, address, KYC (Know Your Customer), bank details, and review. The forms are clear but long, several fields are asked twice or could be filled automatically, and nothing is saved if the officer exits midway.",
+ "screens": [
+  {"index": 1, "name": "Basic Details", "purpose": "Capture shop and owner identity and contact details", "fields": 8, "required_fields": 5, "uploads": 0, "notes": "Three optional fields (alternate mobile, email, year of establishment) add length to the first step."},
+  {"index": 2, "name": "Address", "purpose": "Capture shop address and sales route", "fields": 8, "required_fields": 6, "uploads": 0, "notes": "PIN code is asked last, after city, district and state are typed by hand."},
+  {"index": 3, "name": "KYC (Know Your Customer)", "purpose": "Capture tax and identity documents", "fields": 4, "required_fields": 3, "uploads": 3, "notes": "Three uploads on one screen. Owner name is asked again."},
+  {"index": 4, "name": "Bank Details", "purpose": "Capture bank account for payments", "fields": 7, "required_fields": 7, "uploads": 1, "notes": "Bank name and branch name are typed although IFSC (Indian Financial System Code) is entered."},
+  {"index": 5, "name": "Review and Submit", "purpose": "Confirm details and send for approval", "fields": 1, "required_fields": 1, "uploads": 0, "notes": "Editing needs going back step by step. Changes are not saved on exit."}
+ ],
+ "findings": [
+  {"screen": 5, "title": "No draft saving across a five step form", "category": "Process", "severity": "High", "evidence": "Review screen says: \"Changes are not saved if you exit.\" A field officer interrupted in a shop loses all five steps of work.", "recommendation": "Save a draft automatically after each step and let the officer resume from the last completed step.", "effort": "M"},
+  {"screen": 3, "title": "Owner name asked twice", "category": "Form", "severity": "High", "evidence": "Screen 1 asks \"Owner full name\" and Screen 3 asks \"Owner name as per PAN\" (Permanent Account Number).", "recommendation": "Ask once. Prefill from PAN verification, or carry forward the name from Screen 1 for a quick confirmation.", "effort": "S"},
+  {"screen": 3, "title": "KYC step is heavy for a shop counter", "category": "Process", "severity": "High", "evidence": "One screen asks for GST (Goods and Services Tax) certificate, PAN card photo and shop front photo uploads plus PAN, owner name and date of birth.", "recommendation": "Verify GSTIN (GST Identification Number) and PAN through a verification service and drop the GST certificate upload. Keep only the shop front photo, captured directly by camera.", "effort": "M"},
+  {"screen": 2, "title": "City, district and state typed by hand", "category": "Form", "severity": "Medium", "evidence": "City, District and State are separate required fields, and PIN code comes after them.", "recommendation": "Ask PIN code first and fill city, district and state automatically.", "effort": "S"},
+  {"screen": 4, "title": "Bank and branch typed although IFSC is entered", "category": "Form", "severity": "Medium", "evidence": "IFSC code, Bank name and Branch name are all required text fields.", "recommendation": "Fill bank name and branch automatically from the IFSC code.", "effort": "S"},
+  {"screen": 1, "title": "Field labels are small and low contrast", "category": "Accessibility", "severity": "Medium", "evidence": "Labels such as \"Shop name*\" and \"Mobile number*\" are in small light grey text above light placeholder text.", "recommendation": "Use darker labels of at least 14 points so officers can read them outdoors and in shops.", "effort": "S"},
+  {"screen": 5, "title": "Editing from the review screen needs going back step by step", "category": "Navigation", "severity": "Medium", "evidence": "Review screen says: \"To edit any detail, go back to the relevant step.\"", "recommendation": "Add an Edit link beside each section on the review screen that jumps straight to that step.", "effort": "S"},
+  {"screen": 5, "title": "Approval wait with no visible status", "category": "Process", "severity": "Medium", "evidence": "\"Approval takes 3 to 5 working days. You will receive an SMS after approval.\" No status tracking is shown.", "recommendation": "Show an approval status the officer and retailer can track. Consider provisional activation when GSTIN and PAN are verified.", "effort": "M"},
+  {"screen": 1, "title": "Optional fields lengthen the first step", "category": "Form", "severity": "Low", "evidence": "Alternate mobile number, Email ID and Year of establishment appear on Screen 1.", "recommendation": "Move optional fields to a later profile screen that can be completed after approval.", "effort": "S"},
+  {"screen": 4, "title": "Account number entered twice", "category": "Form", "severity": "Low", "evidence": "\"Account number*\" and \"Re-enter account number*\" are both required.", "recommendation": "Keep one entry and confirm the account through a bank account verification service or the cancelled cheque photo.", "effort": "M"},
+  {"screen": 2, "title": "Route or beat selected manually", "category": "Form", "severity": "Low", "evidence": "\"Route / Beat*\" is a required dropdown.", "recommendation": "Prefill the route from the officer's assigned beat if the app already knows it.", "effort": "S"},
+  {"screen": 5, "title": "Consent bundles three documents without links", "category": "Content", "severity": "Low", "evidence": "One checkbox covers terms and conditions, distributor policy and scheme rules. No links are visible.", "recommendation": "Link each document so the retailer can read it before agreeing.", "effort": "S"}
+ ],
+ "journey": {
+  "current_steps": 5,
+  "proposed_steps": 2,
+  "proposed_flow": [
+   {"step": 1, "name": "Shop and owner", "what_happens": "Officer enters mobile number and GSTIN or PAN. Verified details prefill owner name, shop name and address. PIN code fills city, district and state. Officer picks shop type and takes the shop front photo."},
+   {"step": 2, "name": "Bank, review and submit", "what_happens": "IFSC code fills bank and branch. Officer enters account number and photographs the cancelled cheque, reviews all details with edit links, records consent and submits. A draft is saved after every change."}
+  ],
+  "changes": [
+   "Merged Basic Details, Address and KYC into one verified step",
+   "Removed the second owner name field",
+   "Removed the GST certificate upload when GSTIN is verified",
+   "Auto filled city, district, state, bank name and branch name",
+   "Moved optional fields to a later profile screen",
+   "Added automatic draft saving and edit links on review"
+  ]
+ },
+ "experiments": [
+  {"hypothesis": "A two step registration with verified prefill increases the share of started registrations that are submitted.", "variant": "Two step flow for half of the field officers, current five step flow for the other half, for four weeks.", "primary_metric": "Registrations submitted divided by registrations started", "guardrail_metric": "Approval rejection rate, so faster does not mean worse data", "platforms": "Firebase A/B Testing, Statsig, Optimizely or GrowthBook"},
+  {"hypothesis": "Automatic draft saving recovers registrations that are interrupted today.", "variant": "Draft saving on versus off.", "primary_metric": "Share of interrupted registrations completed within 7 days", "guardrail_metric": "Duplicate retailer registrations", "platforms": "Statsig, LaunchDarkly or GrowthBook feature flags"},
+  {"hypothesis": "Dropping the GST certificate upload when GSTIN is verified reduces KYC step drop off without hurting approvals.", "variant": "No certificate upload for verified GSTIN versus current upload.", "primary_metric": "Drop off at the KYC step", "guardrail_metric": "Approvals rejected for KYC reasons", "platforms": "Firebase A/B Testing or Optimizely"}
+ ],
+ "needs_more_evidence": [
+  "Funnel analytics by step (for example Mixpanel, Amplitude or Firebase) to measure where officers drop off",
+  "Time spent per screen and session replay (for example Microsoft Clarity) on the KYC and bank steps",
+  "Approval team rejection reasons for the last three months",
+  "Network and device conditions in the field, since uploads depend on them"
+ ]
+}
