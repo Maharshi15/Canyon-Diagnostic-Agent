@@ -155,17 +155,21 @@ with right:
                                     "Issues": "; ".join(dict.fromkeys(x[1] for x in r["issues"])) or "Clean"}
                                    for r in rows]), hide_index=True, width='stretch')
     with t4:
-        api_key, model = secret("ANTHROPIC_API_KEY"), secret("CLAUDE_MODEL")
-        if not (api_key and model):
-            st.info("The AI (Artificial Intelligence) summary switches on once ANTHROPIC_API_KEY and CLAUDE_MODEL "
-                    "are added to the app secrets. Everything else works without them.")
-        elif st.button("Write executive summary"):
-            from ai_summary import write_summary
-            with st.spinner("Writing summary..."):
-                try:
-                    st.session_state.summary = write_summary(res, client, api_key, model)
-                except Exception as e:
-                    st.error(f"The AI service did not respond. Check the API key and model name. Details: {e}")
+        from ai_summary import provider_config, write_summary
+        cfg = provider_config(secret)
+        if not cfg:
+            st.info("The AI (Artificial Intelligence) summary switches on once the Azure OpenAI settings "
+                    "(AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, AZURE_OPENAI_DEPLOYMENT) are added to the app "
+                    "secrets. Everything else works without them.")
+        else:
+            st.caption("AI provider: " + ("Azure OpenAI" if cfg["provider"] == "azure" else "Anthropic Claude"))
+            if st.button("Write executive summary"):
+                with st.spinner("Writing summary..."):
+                    try:
+                        st.session_state.summary = write_summary(res, client, cfg)
+                    except Exception as e:
+                        st.error("The AI service did not respond. Check the endpoint, key and deployment name "
+                                 f"in the secrets. Details: {e}")
         if st.session_state.get("summary"):
             st.markdown(st.session_state.summary)
 

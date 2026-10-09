@@ -1,8 +1,12 @@
-"""Writes the executive summary with Claude.
+"""Writes the executive summary with an AI (Artificial Intelligence) model.
+
+Supports two providers, chosen by which secrets are set:
+* Azure OpenAI: AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, AZURE_OPENAI_DEPLOYMENT
+  (optional AZURE_OPENAI_API_VERSION for older resources)
+* Anthropic Claude: ANTHROPIC_API_KEY, CLAUDE_MODEL
 
 Only aggregated findings and a few example records are sent, never the whole file.
 """
-import anthropic
 
 SYSTEM = """You are the Canyon Diagnostic Agent of Canyon Data Labs, Ahmedabad.
 Write a short executive summary of a master data diagnostic for a client's leadership.
@@ -18,7 +22,18 @@ Rules:
 * Use Markdown headings and bullets. Under 300 words."""
 
 
-def write_summary(result, client, api_key, model):
+def provider_config(get):
+    """Return the provider settings found in secrets, or None. `get(name)` reads one secret."""
+    endpoint, key, deployment = get("AZURE_OPENAI_ENDPOINT"), get("AZURE_OPENAI_API_KEY"), get("AZURE_OPENAI_DEPLOYMENT")
+    if endpoint and key and deployment:
+        return {"provider": "azure", "endpoint": endpoint.strip().rstrip("/"), "key": key.strip(),
+                "deployment": deployment.strip(), "api_version": (get("AZURE_OPENAI_API_VERSION") or "").strip()}
+    if get("ANTHROPIC_API_KEY") and get("CLAUDE_MODEL"):
+        return {"provider": "anthropic", "key": get("ANTHROPIC_API_KEY").strip(), "model": get("CLAUDE_MODEL").strip()}
+    return None
+
+
+def build_prompt(result, client):
     lines = [f"Client: {client or 'Not specified'}",
              f"Records reviewed: {result['total']}",
              f"Overall data quality score: {result['overall']} out of 100",
@@ -28,7 +43,39 @@ def write_summary(result, client, api_key, model):
     for f in result["findings"]:
         ex = "; ".join(r["desc"] for r in f["rows"][:3])
         lines.append(f"* [{f['severity']}] {f['label']}: {f['count']} records. Examples: {ex}. Recommendation: {f['rec']}")
-    client_api = anthropic.Anthropic(api_key=api_key)
-    msg = client_api.messages.create(model=model, max_tokens=1200, system=SYSTEM,
-                                     messages=[{"role": "user", "content": "\n".join(lines)}])
+    return "\n".join(lines)
+
+
+def _azure(cfg, prompt):
+    from openai import AzureOpenAI, OpenAI, BadRequestError
+    endpoint = cfg["endpoint"]
+    for suffix in ("/openai/v1", "/openai"):
+        if endpoint.endswith(suffix):
+            endpoint = endpoint[: -len(suffix)]
+    if cfg["api_version"]:
+        client = AzureOpenAI(azure_endpoint=endpoint, api_key=cfg["key"], api_version=cfg["api_version"])
+    else:
+        client = OpenAI(base_url=endpoint + "/openai/v1/", api_key=cfg["key"])
+    messages = [{"role": "system", "content": SYSTEM}, {"role": "user", "content": prompt}]
+    try:
+        resp = client.chat.completions.create(model=cfg["deployment"], messages=messages, max_completion_tokens=4000)
+    except BadRequestError as e:
+        if "max_completion_tokens" not in str(e):
+            raise
+        resp = client.chat.completions.create(model=cfg["deployment"], messages=messages, max_tokens=1500)
+    return resp.choices[0].message.content or ""
+
+
+def _anthropic(cfg, prompt):
+    import anthropic
+    msg = anthropic.Anthropic(api_key=cfg["key"]).messages.create(
+        model=cfg["model"], max_tokens=1200, system=SYSTEM, messages=[{"role": "user", "content": prompt}])
     return "".join(b.text for b in msg.content if getattr(b, "type", "") == "text")
+
+
+def write_summary(result, client, cfg):
+    prompt = build_prompt(result, client)
+    text = _azure(cfg, prompt) if cfg["provider"] == "azure" else _anthropic(cfg, prompt)
+    if not text.strip():
+        raise RuntimeError("The model returned an empty answer. Try again, or use a larger deployment.")
+    return text

@@ -6,7 +6,7 @@ This guide puts the app online in about 20 minutes. No coding needed. You only c
 
 * `app.py`: the web app screens
 * `diag_engine.py`: the master data checks and scoring
-* `ai_summary.py`: writes the executive summary with Claude (switched on later)
+* `ai_summary.py`: writes the executive summary with Azure OpenAI or Claude
 * `requirements.txt`: the list of tools the host installs automatically
 * `sample_material_master.csv`: illustrative sample data, not client data
 * `.streamlit/config.toml`: Canyon colors (optional, a hidden folder)
@@ -64,17 +64,31 @@ Until Canyon's Tech Lead has reviewed the app, use it only with:
 
 For production with many clients, we will move the app to Canyon's own Azure or AWS (Amazon Web Services) account in an Indian region.
 
-## Later: switch on the AI (Artificial Intelligence) summary
+## Switch on the AI (Artificial Intelligence) summary with Azure OpenAI
 
-1. Create an account at console.anthropic.com, add billing, and create an API (Application Programming Interface) key.
-2. Copy the current model name from Anthropic's models page in the docs.
-3. In the app's **Secrets**, add:
+You need three values from your Azure OpenAI resource.
+
+1. Sign in to portal.azure.com and open your Azure OpenAI resource.
+2. Open **Keys and Endpoint**. Copy the **Endpoint** and **KEY 1**.
+3. Open Azure AI Foundry from the resource and go to **Deployments**. Copy the **deployment name** exactly as written. It is the name your team gave the deployment, which may differ from the model name.
+4. In the app's **Secrets**, keep your password line and add:
 
 ```
-ANTHROPIC_API_KEY = "paste-your-key"
-CLAUDE_MODEL = "paste-the-model-name"
+AZURE_OPENAI_ENDPOINT = "https://your-resource-name.openai.azure.com/"
+AZURE_OPENAI_API_KEY = "paste-key-1-here"
+AZURE_OPENAI_DEPLOYMENT = "paste-deployment-name-here"
 ```
 
-4. The **Executive summary** tab now has a **Write executive summary** button. Only the totals and a few example records are sent to the AI, never the whole file.
+5. Click **Save**. The **Executive summary** tab now shows "AI provider: Azure OpenAI" and a **Write executive summary** button.
 
-Never share the API key in email, chat or screenshots.
+If you get an "unauthorized" or "not found" error, add one more line and save again:
+
+```
+AZURE_OPENAI_API_VERSION = "2024-10-21"
+```
+
+Only the totals and a few example records are sent to the AI, never the whole file.
+
+Never share the key in email, chat or screenshots.
+
+(The app can also use Anthropic Claude instead: add ANTHROPIC_API_KEY and CLAUDE_MODEL. If both are set, Azure OpenAI is used.)
