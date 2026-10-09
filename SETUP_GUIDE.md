@@ -1,4 +1,4 @@
-# Canyon Diagnostic Agent: Setup Guide (Version 0.3)
+# Canyon Diagnostic Agent: Setup Guide (Version 0.4)
 
 This guide puts the app online in about 20 minutes. No coding needed. You only click, drag files and paste text.
 
@@ -10,7 +10,10 @@ This guide puts the app online in about 20 minutes. No coding needed. You only c
 * `requirements.txt`: the list of tools the host installs automatically
 * `app_engine.py`: the Application Diagnostic review and analytics checks
 * `module_application.py`: the Application Diagnostic screen
-* `samples/`: illustrative sample data and screenshots of a fictional app, not client data
+* `process_engine.py` and `module_process.py`: the Process Diagnostic checks and screen
+* `report_engine.py` and `module_report.py`: the client Diagnostic Report (Word)
+* `module_pilot.py`: the Pilot Request Kit (message to pilot clients and data request checklist)
+* `samples/`: illustrative sample data, screenshots of a fictional app and a fictional process, not client data
 * `.streamlit/config.toml`: Canyon colors (optional, a hidden folder)
 
 ## Step 1: Create a GitHub account (5 minutes)
@@ -104,3 +107,31 @@ Never share the key in email, chat or screenshots.
 5. Click **Run application diagnostic**. It takes up to a minute. Then download the Excel report.
 
 Your Azure deployment must accept images (for example a GPT 4o, GPT 4.1 or GPT 5 deployment). Hide personal data in screenshots before uploading.
+
+## Process Diagnostic (version 0.4)
+
+1. In the left panel, choose **Process Diagnostic**.
+2. Open the **Illustrative sample** tab and click **Use illustrative sample**, then **Run process diagnostic**. You should see 10 steps, 6 findings, a cycle time of 10 days and 1,436 manual hours a month.
+3. For a real process, use one of the other two tabs:
+   * **Upload a step table**: an Excel or CSV file with the columns Step, Owner, System, Type, Work minutes, Wait hours, and optionally Share of cases %. Type is one of Task, Data entry, Check, Approval, Handoff.
+   * **Draft from an SOP with AI**: upload the SOP (Word, PDF or text) or paste the description. The AI drafts the table. It never invents times, so add them yourself with the process owner.
+4. Check and edit the step table on screen, enter **Cases per month**, and choose where the times come from (estimates are Evidence level 1, system timestamps are level 2).
+5. Click **Run process diagnostic**. The tabs show findings, a process map, automation opportunities ranked by impact, and pilot experiments. Download the Excel report.
+
+All counts, times and ratings are calculated by the app. The AI is only used to draft the step table from a document.
+
+## Diagnostic Report (version 0.4)
+
+1. Run one or more modules first (samples work too). Results stay available while the browser tab is open.
+2. Choose **Diagnostic Report**. Tick the modules to include, check the **Prepared by** and **Contact** fields, and pick **Full report** or **One page summary for a prospect**.
+3. Check the preview, then click **Download Word report**. To send a PDF, open it in Word and use File, Save As, PDF.
+
+Reports built from sample data carry a red "Illustrative" line on the cover. Read every finding before sending.
+
+## Pilot Request Kit (version 0.4)
+
+1. Choose **Pilot Request Kit**. Enter the contact's first name, the company, what the pilot covers, and one real detail about them.
+2. Copy the LinkedIn message, the email or the follow up with the copy icon on each box.
+3. Click **Download checklist (Word)** and attach it to the email. It lists what to share per module, how Canyon handles the data, and a short pilot confirmation the client signs or replies with.
+
+Tick **Say the pilot is at no cost** only when Canyon has agreed to that. Confirm the data handling lines with the Canyon Tech Lead until the security review is done.

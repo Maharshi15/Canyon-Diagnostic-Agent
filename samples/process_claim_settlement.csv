@@ -1,0 +1,11 @@
+Step,Owner,System,Type,Work minutes,Wait hours,Share of cases %
+Retailer sends scheme claim with invoice photos,Sales Officer,WhatsApp,Task,10,24,100
+Sales officer logs claim in tracker,Sales Officer,Excel,Data entry,8,48,100
+Area manager approves claim,Area Manager,Email,Approval,3,36,100
+Distributor verifies invoices,Distributor,Distributor portal,Check,12,24,100
+Claims executive enters claim in SAP,Claims Executive,SAP,Data entry,10,24,100
+Claims executive checks scheme eligibility,Claims Executive,Excel,Check,15,8,100
+Regional head approves claims above 25000,Regional Head,Email,Approval,2,48,40
+Finance approves credit note,Finance Executive,SAP,Approval,5,24,100
+Credit note posted to retailer account,Finance Executive,SAP,Task,5,8,100
+Retailer informed of settlement,Sales Officer,WhatsApp,Handoff,3,24,100

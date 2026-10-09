@@ -73,6 +73,40 @@ def _anthropic(cfg, prompt):
     return "".join(b.text for b in msg.content if getattr(b, "type", "") == "text")
 
 
+def ask(cfg, system, prompt, max_tokens=4000, json_mode=False):
+    """General call used by other modules: one system prompt, one user prompt, text back."""
+    if cfg["provider"] != "azure":
+        import anthropic
+        msg = anthropic.Anthropic(api_key=cfg["key"]).messages.create(
+            model=cfg["model"], max_tokens=max_tokens, system=system, messages=[{"role": "user", "content": prompt}])
+        return "".join(b.text for b in msg.content if getattr(b, "type", "") == "text")
+    from openai import AzureOpenAI, OpenAI, BadRequestError
+    endpoint = cfg["endpoint"]
+    for suffix in ("/openai/v1", "/openai"):
+        if endpoint.endswith(suffix):
+            endpoint = endpoint[: -len(suffix)]
+    if cfg["api_version"]:
+        client = AzureOpenAI(azure_endpoint=endpoint, api_key=cfg["key"], api_version=cfg["api_version"])
+    else:
+        client = OpenAI(base_url=endpoint + "/openai/v1/", api_key=cfg["key"])
+    kwargs = {"model": cfg["deployment"], "max_completion_tokens": max(max_tokens, 8000),
+              "messages": [{"role": "system", "content": system}, {"role": "user", "content": prompt}]}
+    if json_mode:
+        kwargs["response_format"] = {"type": "json_object"}
+    for _ in range(3):
+        try:
+            return client.chat.completions.create(**kwargs).choices[0].message.content or ""
+        except BadRequestError as e:
+            if "response_format" in str(e) and "response_format" in kwargs:
+                kwargs.pop("response_format")
+            elif "max_completion_tokens" in str(e) and "max_completion_tokens" in kwargs:
+                kwargs.pop("max_completion_tokens")
+                kwargs["max_tokens"] = max_tokens
+            else:
+                raise
+    raise RuntimeError("The AI service rejected the request settings.")
+
+
 def write_summary(result, client, cfg):
     prompt = build_prompt(result, client)
     text = _azure(cfg, prompt) if cfg["provider"] == "azure" else _anthropic(cfg, prompt)

@@ -1,4 +1,4 @@
-"""Canyon Diagnostic Agent: web app (version 0.3: Master Data and Application modules).
+"""Canyon Diagnostic Agent: web app (version 0.4: Master Data, Application and Process modules, client report, pilot kit).
 
 Run locally:  streamlit run app.py
 """
@@ -52,10 +52,10 @@ with st.sidebar:
     st.markdown("### CANYON DIAGNOSTIC AGENT")
     st.caption("Discover · Diagnose · Recommend · Transform")
     client = st.text_input("Client name", placeholder="For example: ABC Manufacturing")
-    module = st.radio("Module", ["Master Data Diagnostic", "Application Diagnostic",
-                                 "Process Diagnostic (planned)"], index=0)
+    module = st.radio("Module", ["Master Data Diagnostic", "Application Diagnostic", "Process Diagnostic",
+                                 "Diagnostic Report", "Pilot Request Kit"], index=0)
     st.divider()
-    st.caption("Version 0.3 · Canyon Data Labs, Ahmedabad")
+    st.caption("Version 0.4 · Canyon Data Labs, Ahmedabad")
 
 st.title("Before you transform your business systems, diagnose them.")
 
@@ -63,8 +63,17 @@ if module == "Application Diagnostic":
     import module_application
     module_application.render(client, secret)
     st.stop()
-if module != "Master Data Diagnostic":
-    st.info("This module is on the roadmap.")
+if module == "Process Diagnostic":
+    import module_process
+    module_process.render(client, secret)
+    st.stop()
+if module == "Diagnostic Report":
+    import module_report
+    module_report.render(client)
+    st.stop()
+if module == "Pilot Request Kit":
+    import module_pilot
+    module_pilot.render(client)
     st.stop()
 
 st.subheader("Master Data Diagnostic")
@@ -105,6 +114,7 @@ if "error" in res:
     st.stop()
 
 st.caption(f"Source: {src_label}")
+st.session_state.md_diag = {"res": res, "source": src_label}
 
 # Headline numbers
 k = st.columns(4)
